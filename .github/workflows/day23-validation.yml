@@ -1,0 +1,54 @@
+name: Day 23 Submission Validation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate Day 23 submission
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run structural validator
+        run: python scripts/validate_submission.py
+
+      - name: Check committed whitespace errors
+        run: git show --check --oneline --no-renames HEAD
+
+      - name: Verify required submission files
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f README.md
+          test -f metrics-pack.md
+          test -f ai-support-log.md
+          test -f gate-audit.md
+          test -f submission-checklist.md
+          test -f mentor-defense.md
+          test -f scripts/validate_submission.py
+
+      - name: Reject unresolved work markers
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -RInE 'TODO|TBD|FIXME|STUDENT CONFIRMATION REQUIRED|\[fill here\]' \
+            --include='*.md' --include='*.py' .; then
+            echo 'Unresolved work marker found.'
+            exit 1
+          fi
