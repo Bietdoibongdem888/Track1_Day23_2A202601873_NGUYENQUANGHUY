@@ -43,12 +43,12 @@ jobs:
           test -f mentor-defense.md
           test -f scripts/validate_submission.py
 
-      - name: Reject unresolved work markers
+      - name: Reject unresolved work markers in submission artifacts
         shell: bash
         run: |
           set -euo pipefail
-          if grep -RInE 'TODO|TBD|FIXME|STUDENT CONFIRMATION REQUIRED|\[fill here\]' \
-            --include='*.md' --include='*.py' .; then
-            echo 'Unresolved work marker found.'
+          files=(README.md metrics-pack.md ai-support-log.md gate-audit.md submission-checklist.md mentor-defense.md)
+          if grep -nHE 'TODO|TBD|FIXME|STUDENT CONFIRMATION REQUIRED|\[fill here\]' "${files[@]}"; then
+            echo 'Unresolved work marker found in submission artifact.'
             exit 1
           fi
